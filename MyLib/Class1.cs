@@ -7,30 +7,30 @@ using System.Linq;
 
 namespace MyLib
 {
-   // SQLiteConnection myConnection;
-  //  SQLiteCommand command;//Переменные для соединения
-   // SQLiteDataReader reader;//Запись
+
     public class Auto
-    {
-        public int num { get; set; }
-        public string mark { get; set; }
-        public string model { get; set; }
-        public Motor motor = null;
+    {//Машины
+        public int num { get; set; }//номер
+        public string mark { get; set; }//марка
+        public string model { get; set; }//модель
+        public Motor motor = null;//мотор(по умолчанию нет)
         
         public Auto(int num, string mark, string model)
-        {
+        {//Инициализация из бд
             this.num = num;
             this.mark = mark;
             this.model = model;
         }
         public Auto( string mark, string model, int id, string name)
-        {
+        {//Создание новой машины
             this.mark = mark;
             this.model = model;
-            motor = new Motor(id,  name);
+            motor = new Motor(id,  name);//инициализация мотора
             num=insert();
+            DataSQL.reader.Close();
         }
         public int insert() {
+        //Инсерт новой машины
             DataSQL.request( "INSERT INTO  park ([mark],[model],[motor]) VALUES ( '"
                                                     + mark + "','" + model + "'," + motor.id + ")");
             DataSQL.requestRead("SELECT MAX(num) from park");
@@ -46,8 +46,17 @@ namespace MyLib
             DataSQL.request("DELETE FROM park WHERE num=" + num);
 
         }
+        public void update(string model, string mark, int idM, string motor)
+        {
+            //Вносим изменения
+            this.model = model;
+            this.mark = mark;
+            this.motor = new Motor(idM, motor);
+            MyLib.DataSQL.request("UPDATE park SET model = '" + model +
+                "', mark='" + mark + "', motor=" + idM + " WHERE num=" + num);
+        }
     }
-    public class Motor
+    public class Motor 
     {
         public int id { get; set; }
         public string name { get; set; }
@@ -57,6 +66,12 @@ namespace MyLib
             this.id = id;
             this.name = name;
         }
+        public void delete()
+        {//Удаление
+            
+            //DataSQL.request("DELETE FROM job WHERE num=" + );
+        }
+
     }
     public class Job
     {
@@ -117,6 +132,32 @@ namespace MyLib
             {
                 dict.Add(reader[1].ToString(), int.Parse(reader[0].ToString()));// запоминаем ид и название моторв
             }
+            reader.Close();
+            return dict;
+        }
+        public static Dictionary<int, Dictionary<string, int>> LoadTypeJob()
+        {
+            Dictionary<int, Dictionary<string, int>> dict = new Dictionary<int, Dictionary<string, int>>();
+            List<int> type = new List<int>();
+
+            requestRead("SELECT distinct type FROM typejob" );          
+            while (reader.Read()) //Запись данных об видах работ на данный двигатель
+            {
+                type.Add(int.Parse(reader[0].ToString()));
+            }
+            reader.Close();
+
+            foreach (int i in type) //Запись данных об видах работ на данный двигатель
+            {
+                dict.Add(i, new Dictionary<string, int>());
+                requestRead("SELECT name, id FROM typejob where type=" + i);
+                for (int k=0;  reader.Read();k++) //Запись данных об видах работ на данный двигатель
+                {
+                    dict[i].Add(reader[0].ToString(), int.Parse(reader[1].ToString()) );
+                }
+                reader.Close();
+            }
+           
             return dict;
         }
         public static void request(string query )

@@ -10,7 +10,6 @@ namespace AutoPark_Test_
     {
      
         Dictionary<string, int> typeJob;//Спиосок работ
-        Dictionary<string, int> typeMotor;//Список моторов
         int imotor = -1;//индекс мотора
         int ijob = -1;//индекс работы
         public motorsJobs()
@@ -21,17 +20,14 @@ namespace AutoPark_Test_
 
         private void MotorLoad()//Вывод данных о моторах
         {
-            typeMotor = new Dictionary<string, int>();
 
             dataGridView2.Rows.Clear();
-            MyLib.DataSQL.requestRead("SELECT id, name FROM motors");
-
-            while (MyLib.DataSQL.reader.Read()) //Запись данных об моторах
-            {
-                typeMotor.Add(MyLib.DataSQL.reader[1].ToString(), int.Parse(MyLib.DataSQL.reader[0].ToString()));
-                string[] s = { MyLib.DataSQL.reader[0].ToString(), MyLib.DataSQL.reader[1].ToString() };
-                dataGridView2.Rows.Add(s);
-            }
+            if(Program.typeMotor!=null)
+                foreach (string motor in Program.typeMotor.Keys)
+                { //Запись в массив   
+                    string[] s = { Program.typeMotor[motor].ToString(), motor };
+                    dataGridView2.Rows.Add(s);
+                }
             return;
         }
 
@@ -60,7 +56,6 @@ namespace AutoPark_Test_
             imotor = int.Parse(dataGridView2[0, dataGridView2.CurrentRow.Index].Value.ToString()); //Запомниаем индекс моторах
             JobLoad();//Выводим работы по мотору
             return;
-
         }
 
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -74,7 +69,7 @@ namespace AutoPark_Test_
 
         private void Bmotor_Click(object sender, EventArgs e)
         {//Добавить мотр список
-            if (tEmotor.Text.ToString() == "" || typeMotor==null || typeMotor.ContainsKey(tEmotor.Text.ToString()) )
+            if (tEmotor.Text.ToString() == "" || Program.typeMotor==null || Program.typeMotor.ContainsKey(tEmotor.Text.ToString()) )
                 return;
 
             MyLib.DataSQL.request("INSERT INTO  motors ([name]) VALUES ( '" + tEmotor.Text.ToString() + "')");
@@ -139,7 +134,7 @@ namespace AutoPark_Test_
 
         private void bClose_Click(object sender, EventArgs e)
         {// закрыть окно
-            this.Close();
+            Close();
         }
 
         private void bjob_Click(object sender, EventArgs e)

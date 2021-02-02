@@ -9,14 +9,15 @@ namespace AutoPark_Test_
     {
 
         int motor=-1; int number;
-        string mark, model, motorS;
-        Dictionary<string, int> typejob;//Спиосок работ
+        string motorS="";
        
         
         public myAuto(int number)
         {//экземпляр для добавления нового товара
             InitializeComponent();
-            motorS = Program.auto[number].motor.name;
+            this.number = number;
+            if(Program.auto[number].motor != null)  
+                motorS = Program.auto[number].motor.name;
             //Запоминаем и выводим данные о машине
             tMark.Text = Program.auto[number].mark;
             tModel.Text = Program.auto[number].model;
@@ -27,7 +28,6 @@ namespace AutoPark_Test_
 
         private void DataLoad()//Вывод данных
         {
-            typejob = new Dictionary<string, int>();
 
             JobData();//Вывод истории работ
             motorBox.Items.Clear();//очищение списка моторов
@@ -35,19 +35,16 @@ namespace AutoPark_Test_
             foreach (string motor in Program.typeMotor.Keys) //Запись данных об моторах
             {
                 motorBox.Items.Add(motor);
-                if (Program.typeMotor[motorS] == Program.typeMotor[motor]){
+                if (Program.auto[number].motor != null && Program.typeMotor[motorS] == Program.typeMotor[motor]){
                     motorBox.SelectedIndex = i;//Ставим текущий индекс мотора
                 }
                 i++;
             }
-            
-            mark =tMark.Text;//запоминаем название марки
-            MyLib.DataSQL.requestRead("SELECT id, name FROM typejob where type=" + Program.auto[number].motor.id);
-            jobsBox.Items.Clear();//очистка списка работ
-            while (MyLib.DataSQL.reader.Read()) //Запись данных об видах работ на данный двигатель
-            {
-                typejob.Add(MyLib.DataSQL.reader[1].ToString(), int.Parse(MyLib.DataSQL.reader[0].ToString()));
-                jobsBox.Items.Add(MyLib.DataSQL.reader[1].ToString());
+            if (Program.auto[number].motor != null)
+            {  
+                jobsBox.Items.Clear();//очистка списка работ
+                foreach(string name in Program.typeJob[Program.auto[number].motor.id].Keys)
+                    jobsBox.Items.Add(name);
             }
             return;
         }
@@ -55,7 +52,7 @@ namespace AutoPark_Test_
         private void JobData() {
             //загрузка истории работ над машиной
             List<string[]> data = new List<string[]>();// Массив для данных каталога
-            MyLib.DataSQL.requestRead("SELECT * FROM job where num=" + number);//Вывод списка работ по индекусу машины
+            MyLib.DataSQL.requestRead("SELECT * FROM job where num=" + Program.auto[number].num);//Вывод списка работ по индекусу машины
             while (MyLib.DataSQL.reader.Read()) //Запись в массив
             {
                 //Запись данных об работах наж машиной
@@ -88,7 +85,7 @@ namespace AutoPark_Test_
                 return;
             }//Проверка на пустые поля
             MyLib.DataSQL.request("INSERT INTO  job ([num],[job],[date]) VALUES ( "
-                                                    + number + ",'" + typejob[jobsBox.Text.ToString()] + "','" + dateTime.Value.ToString("dd.MM.yyyy HH:mm") + "')");
+                                                    + number + ",'" + Program.typeJob[Program.auto[number].motor.id][jobsBox.Text.ToString()] + "','" + dateTime.Value.ToString("dd.MM.yyyy HH:mm") + "')");
             JobData();//Обнавляем каталог
         }
 
@@ -101,9 +98,9 @@ namespace AutoPark_Test_
 
         private void update_Click(object sender, EventArgs e)
         {//обновление информации о машине
-            if (tModel.Text.ToString()== model  &&
+            if (tModel.Text.ToString()== Program.auto[number].model  &&
                 motorBox.SelectedItem.ToString() == motorS &&
-                tMark.Text.ToString() == mark)//Проверка на заполнение полей
+                tMark.Text.ToString() == Program.auto[number].mark)//Проверка на заполнение полей
                 return;
 
             if (motorBox.SelectedItem.ToString() != motorS )
@@ -123,11 +120,9 @@ namespace AutoPark_Test_
                 DataLoad();//обновляем данные
             }
             MessageBox.Show("Изменения внесены");
-            mark = tMark.Text.ToString();
-            //Вносим изменения
-            MyLib.DataSQL.request("UPDATE park SET model = '" + tModel.Text.ToString() + 
-                "', mark='"+ tMark.Text.ToString() +
-                "', motor="+Program.typeMotor[motorBox.SelectedItem.ToString()] +" WHERE num=" + number);  
+            Program.auto[number].update(tModel.Text.ToString(), tMark.Text.ToString(), 
+                Program.typeMotor[motorBox.SelectedItem.ToString()], motorBox.SelectedItem.ToString());
+            
         }
 
         private void JobDelete_Click(object sender, EventArgs e)

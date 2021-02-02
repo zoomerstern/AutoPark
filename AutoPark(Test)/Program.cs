@@ -13,6 +13,7 @@ namespace AutoPark_Test_
         /// </summary>
         public static List<MyLib.Auto> auto= new List<MyLib.Auto>();
         public static Dictionary<string, int> typeMotor;//Список моторов
+        public static Dictionary<int, Dictionary<string, int>> typeJob;//Список Работ
         [STAThread]
         static void Main()
         {

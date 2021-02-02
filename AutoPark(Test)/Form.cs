@@ -30,7 +30,8 @@ namespace AutoPark_Test_
                              Program.auto[i].motor == null ? "отсутвует" : Program.auto[i].motor.name };
                 dataGridView1.Rows.Add(s);
             }
-            Program.typeMotor = DataSQL.LoadMotor();//Новый спис
+            Program.typeMotor = DataSQL.LoadMotor();//Список моторов
+            Program.typeJob = DataSQL.LoadTypeJob();//Список моторов
         }
 
         

@@ -24,14 +24,18 @@ namespace AutoPark_Test_
         {//обновелние данных
             //Program.auto.Clear();//Обновление списка машин
             Program.auto = DataSQL.LoadAuto();//Новый спис
-            dataGridView1.Rows.Clear();//Отчистка таблицы
-            for (int i=0; i< Program.auto.Count;i++) {
-                string[] s = new string[4] { Program.auto[i].num.ToString(), Program.auto[i].mark, Program.auto[i].model,
-                             Program.auto[i].motor == null ? "отсутвует" : Program.auto[i].motor.name };
-                dataGridView1.Rows.Add(s);
-            }
             Program.typeMotor = DataSQL.LoadMotor();//Список моторов
-            Program.typeJob = DataSQL.LoadTypeJob();//Список моторов
+            Program.typeJob = DataSQL.LoadTypeJob();//Список работ
+            GridLoad();
+        }
+        private void GridLoad() {
+            dataGridView1.Rows.Clear();//Отчистка таблицы
+            for (int i = 0; i < Program.auto.Count; i++)
+            {
+                dataGridView1.Rows.Add(
+                    new string[4] { Program.auto[i].num.ToString(), Program.auto[i].mark, Program.auto[i].model,
+                                    Program.auto[i].motor == null ? "отсутвует" : Program.auto[i].motor.name });
+            }
         }
 
         
@@ -42,14 +46,12 @@ namespace AutoPark_Test_
                 return;
             //И выделение необходимых элементов
             number =  dataGridView1.CurrentRow.Index;//модель
-
             //В форму для редактирования переносимм данные товара
             myAuto frm = new myAuto(number);
             frm.Owner = this;
             if (frm.Enabled != false)
                 frm.ShowDialog();
-
-            DataLoad();//обновляем каталог
+            GridLoad();
             return;
         }
         private void DataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -68,7 +70,7 @@ namespace AutoPark_Test_
             frm.Owner = this;
             //if (frm.Enabled != false)
                 frm.ShowDialog();
-            DataLoad();//обновляем каталог
+            GridLoad();//обновляем каталог
         }
 
         private void Delete_Click(object sender, EventArgs e)
@@ -81,7 +83,7 @@ namespace AutoPark_Test_
             //Удаляем в работы машины
             Program.auto[number].delete();
             Program.auto.Remove(Program.auto[number]);
-            DataLoad();
+            GridLoad();
             MessageBox.Show("Инфомация о машине удалена!");
         }
 

@@ -20,13 +20,12 @@ namespace AutoPark_Test_
 
         private void MotorLoad()//Вывод данных о моторах
         {
-
             dataGridView2.Rows.Clear();
-            if(Program.typeMotor!=null)
+            dataGridView1.Rows.Clear();
+            if (Program.typeMotor!=null)
                 foreach (string motor in Program.typeMotor.Keys)
                 { //Запись в массив   
-                    string[] s = { Program.typeMotor[motor].ToString(), motor };
-                    dataGridView2.Rows.Add(s);
+                    dataGridView2.Rows.Add(new string[]{ Program.typeMotor[motor].ToString(), motor } );
                 }
             return;
         }
@@ -34,15 +33,12 @@ namespace AutoPark_Test_
         private void JobLoad()//Вывод данных о работах над моторами
         {
             if (imotor == -1) return; //какой индекс мотора
-            typeJob = new Dictionary<string, int>();
+            //typeJob = new Dictionary<string, int>();
 
             dataGridView1.Rows.Clear();
-            MyLib.DataSQL.requestRead("SELECT id, name FROM typejob where type=" + imotor);
-            while (MyLib.DataSQL.reader.Read()) //Запись данных об работах над моторм
+            foreach (string job in Program.typeJob[imotor].Keys) //Запись данных об работах над моторм
             {
-                typeJob.Add(MyLib.DataSQL.reader[1].ToString(), int.Parse(MyLib.DataSQL.reader[0].ToString()));
-                string[] s = { MyLib.DataSQL.reader[0].ToString(), MyLib.DataSQL.reader[1].ToString() };
-                dataGridView1.Rows.Add(s);
+                dataGridView1.Rows.Add(new string[] { Program.typeJob[imotor][job].ToString(), job });
             }
             return;
 
@@ -73,6 +69,13 @@ namespace AutoPark_Test_
                 return;
 
             MyLib.DataSQL.request("INSERT INTO  motors ([name]) VALUES ( '" + tEmotor.Text.ToString() + "')");
+            MyLib.DataSQL.requestRead("SELECT MAX(id) FROM motors");
+            int num = -1;
+            if (MyLib.DataSQL.reader.Read())
+            {
+                num = int.Parse(MyLib.DataSQL.reader[0].ToString());
+            }
+            Program.typeMotor.Add(tEmotor.Text.ToString(), num);
             MotorLoad();// Обновление списка моторов
             imotor = -1;//Сброс индекса мотора
             tEmotor.Text = "";//Сброс мотора в текст боксе
@@ -84,7 +87,7 @@ namespace AutoPark_Test_
 
             MyLib.DataSQL.request("UPDATE motors SET name = '" + tEmotor.Text.ToString() +
                  "' WHERE id=" + imotor);
-
+            //Program.typeMotor[dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString()]= tEmotor.Text.ToString();
             MotorLoad();
             imotor = -1;
             tEmotor.Text = "";
@@ -109,23 +112,22 @@ namespace AutoPark_Test_
                     MyLib.DataSQL.request("DELETE FROM  typejob where type=" + imotor);
                 //==  park
                 MyLib.DataSQL.requestRead("SELECT num FROM park where motor=" + imotor);
-                //int num = -1;
-                //if (reader.Read())
-                //{
-                //    num = int.Parse(reader[0].ToString());
-                //    request("DELETE FROM  park where motor=" + imotor);
-                //}
+                int num = -1;
+                if (MyLib.DataSQL.reader.Read())
+                {
+                    num = int.Parse(MyLib.DataSQL.reader[0].ToString());
+                    MyLib.DataSQL.request("DELETE FROM  park where motor=" + imotor);
+                }
                 ////== job
-                //requestRead("SELECT id FROM job where num=" + num);
-                //if (reader.Read())
-                //    request("DELETE FROM  job where num=" + num);
+                MyLib.DataSQL.requestRead("SELECT id FROM job where num=" + num);
+                if (MyLib.DataSQL.reader.Read())
+                    MyLib.DataSQL.request("DELETE FROM  job where num=" + num);
 
             }
             //== motors
             MyLib.DataSQL.request("DELETE FROM motors WHERE id=" + imotor);
             //==
             MotorLoad();//Обновление списка моторв
-            dataGridView1.Rows.Clear();//Сброс списка работа по мотору
             imotor = -1;//Сброс индекса мотора
             tEmotor.Text = "";//Сброс названия мотора в текст боксе
         }

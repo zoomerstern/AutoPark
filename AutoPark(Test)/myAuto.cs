@@ -29,7 +29,6 @@ namespace AutoPark_Test_
         private void DataLoad()//Вывод данных
         {
 
-            JobData();//Вывод истории работ
             motorBox.Items.Clear();//очищение списка моторов
             int i = 0;
             foreach (string motor in Program.typeMotor.Keys) //Запись данных об моторах
@@ -45,35 +44,18 @@ namespace AutoPark_Test_
                 jobsBox.Items.Clear();//очистка списка работ
                 foreach(string name in Program.typeJob[Program.auto[number].motor.id].Keys)
                     jobsBox.Items.Add(name);
+                JobData();//Вывод истории работ
             }
             return;
         }
 
         private void JobData() {
-            //загрузка истории работ над машиной
-            List<string[]> data = new List<string[]>();// Массив для данных каталога
-            MyLib.DataSQL.requestRead("SELECT * FROM job where num=" + Program.auto[number].num);//Вывод списка работ по индекусу машины
-            while (MyLib.DataSQL.reader.Read()) //Запись в массив
-            {
-                //Запись данных об работах наж машиной
-                data.Add(new string[3]);
-                data[data.Count - 1][0] = MyLib.DataSQL.reader[0].ToString();
-                data[data.Count - 1][1] = MyLib.DataSQL.reader[2].ToString();
-                data[data.Count - 1][2] = MyLib.DataSQL.reader[3].ToString();
+            Program.auto[number].motor.jobInsert(Program.auto[number].num);
+            foreach (Job job in Program.auto[number].motor.job) {
+                dataGridView1.Rows.Add(job.getJob());
             }
-
-            MyLib.DataSQL.reader.Close();
-            dataGridView1.Rows.Clear();//Очистка окна каталога
-            foreach (string[] s in data)
-            {//Запись в  окно каталога
-                MyLib.DataSQL.requestRead( "SELECT name FROM typejob WHERE id=" + s[1]);
-                MyLib.DataSQL.reader.Read();
-                s[1] = MyLib.DataSQL.reader[0].ToString(); ;//Выводим название типа работы
-                dataGridView1.Rows.Add(s);
-                MyLib.DataSQL.reader.Close();
-            }
-
         }
+        
 
     
 

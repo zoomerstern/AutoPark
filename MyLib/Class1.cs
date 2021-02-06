@@ -13,13 +13,14 @@ namespace MyLib
         public int num { get; set; }//номер
         public string mark { get; set; }//марка
         public string model { get; set; }//модель
-        public Motor motor = null;//мотор(по умолчанию нет)
+        public Motor motor;//мотор(по умолчанию нет)
         
-        public Auto(int num, string mark, string model)
+        public Auto(int num, string mark, string model, Motor motor)
         {//Инициализация из бд
             this.num = num;
             this.mark = mark;
             this.model = model;
+            this.motor = motor;
         }
         public Auto( string mark, string model, int id, string name)
         {//Создание новой машины
@@ -56,13 +57,13 @@ namespace MyLib
                 "', mark='" + mark + "', motor=" + idM + " WHERE num=" + num);
         }
     }
-    public class Motor 
+    public class Motor
     {
         public int id { get; set; }
         public string name { get; set; }
-        List<Job> job = null;
+        public List<Job> job =  new List<Job>();
         public Motor(int id, string name)
-        {
+        {//Обновление
             this.id = id;
             this.name = name;
         }
@@ -71,7 +72,19 @@ namespace MyLib
             
             //DataSQL.request("DELETE FROM job WHERE num=" + );
         }
+        public void jobInsert(int num) {
 
+            DataSQL.requestRead("SELECT j.id, t.name, j.date from job as j " +
+                           "inner join typejob as t on j.num=" + num +
+                                                     " and j.job=t.id ");
+            while (DataSQL.reader.Read()) //Запись в массив
+            {
+                job.Add(new Job(DataSQL.reader[0].ToString(),
+                                DataSQL.reader[1].ToString(),
+                                DataSQL.reader[2].ToString()));
+            }
+            DataSQL.reader.Close();
+        }
     }
     public class Job
     {
@@ -82,6 +95,9 @@ namespace MyLib
             this.id = id;
             this.name = name;
             this.date = date;
+        }
+        public string[] getJob() { 
+            return new string[] { id, name, date };
         }
     }
 
@@ -94,34 +110,16 @@ namespace MyLib
         public static List<Auto> LoadAuto()
         {
             List<Auto> auto = new List<Auto>();
-                requestRead("SELECT p.num, p.mark, p.model, m.id, m.name FROM park as p " +
-                        "left join motors as m on p.motor=m.id ");
+                requestRead("SELECT p.num, p.mark, p.model, m.id, m.name FROM park as p left join motors as m on p.motor=m.id ");
             while (reader.Read()) //Запись в массив
             {
                 auto.Add(new Auto(int.Parse(reader[0].ToString()),
                                             reader[1].ToString(),
-                                            reader[2].ToString()
+                                            reader[2].ToString(),
+                                            reader[3].ToString() != "" ? new Motor(int.Parse(reader[3].ToString()), reader[4].ToString() ) : null 
                                   ));
-                if(reader[3].ToString() != "")
-                    auto.Last().motor = new Motor(int.Parse(reader[3].ToString()), reader[4].ToString());
             }
             reader.Close();
-           
-            for (int i = 0; i < auto.Count; i++)
-            {
-
-                requestRead("SELECT j.id, t.name, j.date from job as j " +
-                            "inner join typejob as t on j.num=" + auto[i].num +
-                                                      " and j.job=t.id ");
-                List<Job> job = new List<Job>();
-                while (reader.Read()) //Запись в массив
-                {
-                    job.Add(new Job(reader[0].ToString(),
-                                   reader[1].ToString(),
-                                   reader[2].ToString()));
-                }
-                reader.Close();
-            }
             return auto;
         }
         public static Dictionary<string, int> LoadMotor() {
@@ -158,6 +156,7 @@ namespace MyLib
                 reader.Close();
             }
            
+
             return dict;
         }
         public static void request(string query )

@@ -67,11 +67,6 @@ namespace MyLib
             this.id = id;
             this.name = name;
         }
-        public void delete()
-        {//Удаление
-            
-            //DataSQL.request("DELETE FROM job WHERE num=" + );
-        }
         public void jobInsert(int num) {
 
             DataSQL.requestRead("SELECT j.id, t.name, j.date from job as j " +
@@ -120,6 +115,7 @@ namespace MyLib
                                   ));
             }
             reader.Close();
+
             return auto;
         }
         public static Dictionary<string, int> LoadMotor() {
@@ -138,7 +134,7 @@ namespace MyLib
             Dictionary<int, Dictionary<string, int>> dict = new Dictionary<int, Dictionary<string, int>>();
             List<int> type = new List<int>();
 
-            requestRead("SELECT distinct type FROM typejob" );          
+            requestRead("SELECT id FROM motors" );          
             while (reader.Read()) //Запись данных об видах работ на данный двигатель
             {
                 type.Add(int.Parse(reader[0].ToString()));

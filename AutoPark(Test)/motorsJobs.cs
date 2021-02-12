@@ -9,7 +9,6 @@ namespace AutoPark_Test_
     public partial class motorsJobs : System.Windows.Forms.Form
     {
      
-        Dictionary<string, int> typeJob;//Спиосок работ
         int imotor = -1;//индекс мотора
         int ijob = -1;//индекс работы
         public motorsJobs()
@@ -34,14 +33,13 @@ namespace AutoPark_Test_
         {
             if (imotor == -1) return; //какой индекс мотора
             //typeJob = new Dictionary<string, int>();
-
             dataGridView1.Rows.Clear();
-            foreach (string job in Program.typeJob[imotor].Keys) //Запись данных об работах над моторм
-            {
-                dataGridView1.Rows.Add(new string[] { Program.typeJob[imotor][job].ToString(), job });
-            }
+            if(Program.typeJob.ContainsKey(imotor) && Program.typeJob[imotor]!=null)
+                foreach (string job in Program.typeJob[imotor].Keys) //Запись данных об работах над моторм
+                {
+                    dataGridView1.Rows.Add(new string[] { Program.typeJob[imotor][job].ToString(), job });
+                }
             return;
-
         }
 
         private void dataGridView2_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -67,15 +65,15 @@ namespace AutoPark_Test_
         {//Добавить мотр список
             if (tEmotor.Text.ToString() == "" || Program.typeMotor==null || Program.typeMotor.ContainsKey(tEmotor.Text.ToString()) )
                 return;
-
+            int num = -1;
             MyLib.DataSQL.request("INSERT INTO  motors ([name]) VALUES ( '" + tEmotor.Text.ToString() + "')");
             MyLib.DataSQL.requestRead("SELECT MAX(id) FROM motors");
-            int num = -1;
             if (MyLib.DataSQL.reader.Read())
             {
                 num = int.Parse(MyLib.DataSQL.reader[0].ToString());
             }
             Program.typeMotor.Add(tEmotor.Text.ToString(), num);
+            Program.typeJob.Add(num, new Dictionary<string, int>());
             MotorLoad();// Обновление списка моторов
             imotor = -1;//Сброс индекса мотора
             tEmotor.Text = "";//Сброс мотора в текст боксе
@@ -87,7 +85,13 @@ namespace AutoPark_Test_
 
             MyLib.DataSQL.request("UPDATE motors SET name = '" + tEmotor.Text.ToString() +
                  "' WHERE id=" + imotor);
-            //Program.typeMotor[dataGridView1[1, dataGridView1.CurrentRow.Index].Value.ToString()]= tEmotor.Text.ToString();
+            foreach (var pair in Program.typeMotor) {
+                if (pair.Value == imotor) {
+                    Program.typeMotor.Remove(pair.Key);
+                    Program.typeMotor.Add(tEmotor.Text.ToString(), pair.Value);
+                    break;
+                }
+            }
             MotorLoad();
             imotor = -1;
             tEmotor.Text = "";
@@ -122,14 +126,15 @@ namespace AutoPark_Test_
                 MyLib.DataSQL.requestRead("SELECT id FROM job where num=" + num);
                 if (MyLib.DataSQL.reader.Read())
                     MyLib.DataSQL.request("DELETE FROM  job where num=" + num);
-
             }
             //== motors
             MyLib.DataSQL.request("DELETE FROM motors WHERE id=" + imotor);
             //==
-            MotorLoad();//Обновление списка моторв
+            Program.typeMotor.Remove(tEmotor.Text.ToString());
+            Program.typeJob.Remove(imotor);
             imotor = -1;//Сброс индекса мотора
             tEmotor.Text = "";//Сброс названия мотора в текст боксе
+            MotorLoad();//Обновление списка моторв
         }
 
      
@@ -141,9 +146,12 @@ namespace AutoPark_Test_
 
         private void bjob_Click(object sender, EventArgs e)
         {//Добавление работы над мотором
-            if (tEjob.Text.ToString() == "" || typeJob == null || typeJob.ContainsKey(tEjob.Text.ToString()) )
+            if (tEjob.Text.ToString() == "" || Program.typeJob[imotor].ContainsKey(tEjob.Text.ToString()) )
                 return;
             MyLib.DataSQL.request("INSERT INTO  typejob ([name],[type]) VALUES ( '" + tEjob.Text.ToString() + "',"+imotor+")");
+            MyLib.DataSQL.requestRead("SELECT MAX(id) FROM typejob");
+            MyLib.DataSQL.reader.Read();
+            Program.typeJob[imotor].Add(tEjob.Text.ToString(), int.Parse(MyLib.DataSQL.reader[0].ToString()));
             JobLoad();
             ijob = -1;
             tEjob.Text = "";
@@ -155,6 +163,16 @@ namespace AutoPark_Test_
                 return;
             MyLib.DataSQL.request("UPDATE typejob SET name = '" + tEjob.Text.ToString() +
                  "' WHERE id=" + ijob);
+            foreach (var pair in Program.typeJob[imotor])
+            {
+                if (pair.Value == ijob)
+                {
+                    Program.typeJob[imotor].Remove(pair.Key);
+                    Program.typeJob[imotor].Add(tEjob.Text.ToString(), pair.Value);
+                    break;
+                }
+            }
+
             JobLoad();
             ijob = -1;
             tEjob.Text = "";
@@ -165,6 +183,7 @@ namespace AutoPark_Test_
             if (tEjob.Text.ToString() == "" || ijob == -1)
                 return;
             MyLib.DataSQL.request("DELETE FROM typejob WHERE id=" + ijob);
+            Program.typeJob[imotor].Remove(tEjob.Text.ToString());
             JobLoad();
             ijob = -1;
             tEjob.Text = ""; 

@@ -32,7 +32,6 @@ namespace AutoPark_Test_
         private void JobLoad()//Вывод данных о работах над моторами
         {
             if (imotor == -1) return; //какой индекс мотора
-            //typeJob = new Dictionary<string, int>();
             dataGridView1.Rows.Clear();
             if(Program.typeJob.ContainsKey(imotor) && Program.typeJob[imotor]!=null)
                 foreach (string job in Program.typeJob[imotor].Keys) //Запись данных об работах над моторм
@@ -102,36 +101,25 @@ namespace AutoPark_Test_
             if (tEmotor.Text.ToString() == "" || imotor == -1)
                 return;
             // Есть ли машины и работы по данному мотору
-            MyLib.DataSQL.requestRead("SELECT * FROM typejob, park where typejob.type=" + imotor + " or park.motor=" + imotor);
-            if (MyLib.DataSQL.reader.Read())
-            {//Если да, то выводим сообщение
-                MessageBox.Show("В случае удаления мотора будут удалены все работы и машины связанные с этим мотором");
-                DialogResult dialogResult = MessageBox.Show("Вы согласны?", "Согласие", MessageBoxButtons.YesNo);
-                if (dialogResult == DialogResult.No)
-                    return;
-                //Удаление всех данных связанных с ээтим моторм
-                //== typejob
-                MyLib.DataSQL.requestRead("SELECT id FROM typejob park where type=" + imotor);
-                if (MyLib.DataSQL.reader.Read())
-                    MyLib.DataSQL.request("DELETE FROM  typejob where type=" + imotor);
-                //==  park
-                MyLib.DataSQL.requestRead("SELECT num FROM park where motor=" + imotor);
-                int num = -1;
-                if (MyLib.DataSQL.reader.Read())
-                {
-                    num = int.Parse(MyLib.DataSQL.reader[0].ToString());
-                    MyLib.DataSQL.request("DELETE FROM  park where motor=" + imotor);
-                }
-                ////== job
-                MyLib.DataSQL.requestRead("SELECT id FROM job where num=" + num);
-                if (MyLib.DataSQL.reader.Read())
-                    MyLib.DataSQL.request("DELETE FROM  job where num=" + num);
+            MessageBox.Show("В случае удаления мотора будут удалены все работы связанные с этим мотором");
+            DialogResult dialogResult = MessageBox.Show("Вы согласны?", "Согласие", MessageBoxButtons.YesNo);
+            if (dialogResult == DialogResult.No)
+                return;
+            //Удаление всех данных связанных с ээтим моторм
+            //== typejob
+            if (Program.typeJob.ContainsKey(imotor))
+            {
+                Program.typeJob.Remove(imotor);
+                MyLib.DataSQL.request("DELETE FROM  typejob where type=" + imotor);
             }
+            //== Auto motor and Auto job
+            Program.auto.FindAll(x => x.motor.id == imotor).ForEach(delegate (Auto cur) {
+                cur.deleteMotor();
+            });
             //== motors
+            Program.typeMotor.Remove(tEmotor.Text.ToString());
             MyLib.DataSQL.request("DELETE FROM motors WHERE id=" + imotor);
             //==
-            Program.typeMotor.Remove(tEmotor.Text.ToString());
-            Program.typeJob.Remove(imotor);
             imotor = -1;//Сброс индекса мотора
             tEmotor.Text = "";//Сброс названия мотора в текст боксе
             MotorLoad();//Обновление списка моторв

@@ -40,15 +40,13 @@ namespace AutoPark_Test_
 
         
         private void Inform()
-        {//Вывод данных о машине
-            
+        {//Вывод данных о машине          
             if (dataGridView1[0, dataGridView1.CurrentRow.Index].Value == null) //Проверка на нажатие
                 return;
             //И выделение необходимых элементов
             number =  dataGridView1.CurrentRow.Index;//модель
             //В форму для редактирования переносимм данные товара
             myAuto frm = new myAuto(number);
-            frm.Owner = this;
             if (frm.Enabled != false)
                 frm.ShowDialog();
             GridLoad();
@@ -87,17 +85,17 @@ namespace AutoPark_Test_
             MessageBox.Show("Инфомация о машине удалена!");
         }
 
-        private void Close_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
-
         private void Edit_Click(object sender, EventArgs e)
         {//Вывод окна "моторы и работы"
             motorsJobs frm = new motorsJobs();
             //if (frm.Enabled != false)
                 frm.ShowDialog();
             DataLoad();
+        }
+        private void Close_Click(object sender, EventArgs e)
+        {
+            MyLib.DataSQL.myConnection.Close();
+            Close();
         }
     }
 }

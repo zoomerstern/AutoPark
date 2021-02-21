@@ -8,12 +8,9 @@ namespace AutoPark_Test_
 {
     static class Program
     {
-        /// <summary>
-        /// Главная точка входа для приложения.
-        /// </summary>
-        public static List<MyLib.Auto> auto= new List<MyLib.Auto>();
-        public static Dictionary<string, int> typeMotor;//Список моторов
-        public static Dictionary<int, Dictionary<string, int>> typeJob;//Список Работ
+        public static List<MyLib.Auto> auto= new List<MyLib.Auto>();//Парк авто
+        public static Dictionary<string, int> typeMotor;//Список видлов моторов
+        public static Dictionary<int, Dictionary<string, int>> typeJob;//Список видов работ
         [STAThread]
         static void Main()
         {

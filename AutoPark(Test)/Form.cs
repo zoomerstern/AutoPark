@@ -24,6 +24,7 @@ namespace AutoPark_Test_
         {//обновелние данных
             //Program.auto.Clear();//Обновление списка машин
             Program.auto = DataSQL.LoadAuto();//Новый спис
+            Program.auto.GetEnumerator();
             Program.typeMotor = DataSQL.LoadMotor();//Список моторов
             Program.typeJob = DataSQL.LoadTypeJob();//Список работ
             GridLoad();

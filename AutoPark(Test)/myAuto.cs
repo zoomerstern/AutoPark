@@ -29,6 +29,7 @@ namespace AutoPark_Test_
 
         private void DataLoad()//Вывод данных
         {
+            //Вывод моторов
             motorBox.Items.Clear();//очищение списка моторов
             int i = 0;
             foreach (string motor in Program.typeMotor.Keys) //Запись данных об моторах
@@ -42,6 +43,7 @@ namespace AutoPark_Test_
             return;
         }
         private void TypeJobData() {
+            //Вывод типо работ мотора
             jobsBox.SelectedItem= null;
             jobsBox.Items.Clear();//очистка списка работ
             if (Program.auto[number].motor != null)

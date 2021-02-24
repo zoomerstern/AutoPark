@@ -40,7 +40,7 @@ namespace MyLib
             return result;
         }
         public void delete()
-        {//Удаление
+        {//Удаление авто
             if (motor.job.Count > 0)
                 DataSQL.request("DELETE FROM job WHERE num=" + num);
             //Удаляем машину
@@ -56,11 +56,8 @@ namespace MyLib
                 "', mark='" + mark + "', motor=" + idM + " WHERE num=" + num);
         }
         public void deleteMotor()
-        {
-            if (motor.job.Count > 0) {
-                motor.job.Clear();  
-                DataSQL.request("DELETE FROM  job where num=" + num);
-            }
+        {    
+            motor.jobAllDelete(num);
             motor = null;
         }
         public void motorJobInset() {
@@ -99,6 +96,14 @@ namespace MyLib
         }
         public void jobDelete(int id) {
             DataSQL.request("DELETE FROM job WHERE id=" + id);
+        }
+        public void jobAllDelete(int num)
+        {
+            if (job.Count > 0)
+            {
+                job.Clear();
+                DataSQL.request("DELETE FROM  job where num=" + num);
+            }
         }
     }
     public class Job
@@ -151,6 +156,54 @@ namespace MyLib
             reader.Close();
             return dict;
         }
+        public static int AddMotor( string tEmotor)
+        {//Добавление типа мотора
+            request("INSERT INTO  motors ([name]) VALUES ( '" + tEmotor + "')");
+            requestRead("SELECT MAX(id) FROM motors");
+            reader.Read();
+            int result = int.Parse(reader[0].ToString());
+            reader.Close();
+            return result;
+        }
+        public static void UpMotor(string tEmotor, int imotor)
+        {//обновелние типа мотора
+            request("UPDATE motors SET name = '" + tEmotor +
+                 "' WHERE id=" + imotor);
+            return;
+        }
+        public static void DeleteMotor(int imotor)
+        {//обновелние типа мотора
+            requestRead("SELECT * FROM typejob where type=" + imotor);
+            if (reader.Read())
+            {
+                request("DELETE FROM  typejob where type=" + imotor);
+            }
+            reader.Close();
+            request("DELETE FROM motors WHERE id=" + imotor);
+            return;
+        }
+        public static int JobAdd(string tEjob, int imotor)
+        {
+            request("INSERT INTO  typejob ([name],[type]) VALUES ( '" + tEjob + "'," + imotor + ")");
+            requestRead("SELECT MAX(id) FROM typejob");
+            reader.Read();
+            int result=int.Parse(reader[0].ToString());
+            reader.Close();
+            return result;
+        }
+        public static void JobDelete(int ijob)
+        {
+            request("DELETE FROM typejob WHERE id=" + ijob);
+            return;
+        }
+
+        public static void UpJob(string tEjob, int ijob)
+        {
+            request("UPDATE typejob SET name = '" + tEjob +
+                 "' WHERE id=" + ijob);
+            return;
+        }
+
         public static Dictionary<int, Dictionary<string, int>> LoadTypeJob()
         {
             Dictionary<int, Dictionary<string, int>> dict = new Dictionary<int, Dictionary<string, int>>();
@@ -173,7 +226,6 @@ namespace MyLib
                 }
                 reader.Close();
             }
-           
 
             return dict;
         }

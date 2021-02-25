@@ -109,7 +109,7 @@ namespace AutoPark_Test_
             if (Program.typeJob.ContainsKey(imotor))
                 Program.typeJob.Remove(imotor);
             //== Удаление мотора с работами
-            Program.auto.FindAll(x => x.motor.id == imotor).ForEach(delegate (Auto cur) {
+            Program.auto.FindAll(x => x.motor!=null && x.motor.id == imotor).ForEach(delegate (Auto cur) {
                 cur.deleteMotor();
             });
             //== motors

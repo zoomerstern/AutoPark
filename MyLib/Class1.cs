@@ -41,7 +41,7 @@ namespace MyLib
         }
         public void delete()
         {//Удаление авто
-            if (motor.job.Count > 0)
+            if (motor!=null && motor.job.Count > 0)
                 DataSQL.request("DELETE FROM job WHERE num=" + num);
             //Удаляем машину
             DataSQL.request("DELETE FROM park WHERE num=" + num);
@@ -52,19 +52,22 @@ namespace MyLib
             this.model = model;
             this.mark = mark;
             this.motor = new Motor(idM, motor);
-            MyLib.DataSQL.request("UPDATE park SET model = '" + model +
+            //БД
+            DataSQL.request("UPDATE park SET model = '" + model +
                 "', mark='" + mark + "', motor=" + idM + " WHERE num=" + num);
         }
         public void deleteMotor()
-        {    
-            motor.jobAllDelete(num);
+        {   //Удаление мотора машины и ее работ
+            if(motor!=null)
+                motor.jobAllDelete(num);
             motor = null;
         }
-        public void motorJobInset() {
+        public void motorJobInset() 
+        {//Удаоение работы
             motor.jobInsert(num);
         }
         public void motorJobAdd(string typeJob, string dateTime)
-        {
+        {//Удаление всех работ
             motor.jobAdd(num, typeJob, dateTime);
         }
     }
@@ -90,15 +93,17 @@ namespace MyLib
             }
             DataSQL.reader.Close();
         }
-        public void jobAdd(int num, string typeJob, string dateTime) {
+        public void jobAdd(int num, string typeJob, string dateTime) 
+        {//Добавление работы
             DataSQL.request("INSERT INTO  job ([num],[job],[date]) VALUES ( "
                                                     + num + ",'" + typeJob + "','" + dateTime + "')");
         }
-        public void jobDelete(int id) {
+        public void jobDelete(int id) 
+        {//Удаление работы
             DataSQL.request("DELETE FROM job WHERE id=" + id);
         }
         public void jobAllDelete(int num)
-        {
+        {//Удаление всех работ с моторм
             if (job.Count > 0)
             {
                 job.Clear();
@@ -108,9 +113,9 @@ namespace MyLib
     }
     public class Job
     {
-        private string id { get; set; }
-        private string name { get; set; }
-        private string date { get; set; }
+        private string id { get; set; }//Ид мработы
+        private string name { get; set; }//Название работы
+        private string date { get; set; }//Дата
         public Job(string id, string name, string date) {
             //добавление работы
             this.id = id;
@@ -118,7 +123,7 @@ namespace MyLib
             this.date = date;
         }
         public string[] getJob() { 
-            //вывод работы
+            //Вывод информации о работе
             return new string[] { id, name, date };
         }
     }
@@ -130,7 +135,7 @@ namespace MyLib
         public static SQLiteDataReader reader;//Запись
 
         public static List<Auto> LoadAuto()
-        {
+        {//Вывод автопарка машин
             List<Auto> auto = new List<Auto>();
                 requestRead("SELECT p.num, p.mark, p.model, m.id, m.name FROM park as p left join motors as m on p.motor=m.id ");
             while (reader.Read()) //Запись в массив
@@ -146,7 +151,7 @@ namespace MyLib
             return auto;
         }
         public static Dictionary<string, int> LoadMotor() {
-
+         //Вывод данных о видах моторв
             Dictionary<string, int> dict = new Dictionary<string, int>();
             requestRead("SELECT id, name FROM motors ");
             while (reader.Read()) //Запись данных об моторах
@@ -156,6 +161,8 @@ namespace MyLib
             reader.Close();
             return dict;
         }
+        //==Работа с БД==
+        //--Виды моторов--
         public static int AddMotor( string tEmotor)
         {//Добавление типа мотора
             request("INSERT INTO  motors ([name]) VALUES ( '" + tEmotor + "')");
@@ -166,7 +173,7 @@ namespace MyLib
             return result;
         }
         public static void UpMotor(string tEmotor, int imotor)
-        {//обновелние типа мотора
+        {//обновелние типа мотора 
             request("UPDATE motors SET name = '" + tEmotor +
                  "' WHERE id=" + imotor);
             return;
@@ -180,10 +187,12 @@ namespace MyLib
             }
             reader.Close();
             request("DELETE FROM motors WHERE id=" + imotor);
+            request("UPDATE park SET motor=-1 where motor=" + imotor);
             return;
         }
+        //--Виды работ--
         public static int JobAdd(string tEjob, int imotor)
-        {
+        {//Добаление типа работы
             request("INSERT INTO  typejob ([name],[type]) VALUES ( '" + tEjob + "'," + imotor + ")");
             requestRead("SELECT MAX(id) FROM typejob");
             reader.Read();
@@ -192,20 +201,20 @@ namespace MyLib
             return result;
         }
         public static void JobDelete(int ijob)
-        {
+        {//Удаление типа работы
             request("DELETE FROM typejob WHERE id=" + ijob);
             return;
         }
 
         public static void UpJob(string tEjob, int ijob)
-        {
+        {//Обноление типа работы
             request("UPDATE typejob SET name = '" + tEjob +
                  "' WHERE id=" + ijob);
             return;
         }
 
         public static Dictionary<int, Dictionary<string, int>> LoadTypeJob()
-        {
+        {//Вывод данных о работах
             Dictionary<int, Dictionary<string, int>> dict = new Dictionary<int, Dictionary<string, int>>();
             List<int> type = new List<int>();
 
@@ -230,12 +239,12 @@ namespace MyLib
             return dict;
         }
         public static void request(string query )
-        {
+        {//Команда в бд
             command = new SQLiteCommand(query, myConnection);
             command.ExecuteReader();
         }
         public static void requestRead(string query)
-        {
+        {//Команда в бд на чтение
             command = new SQLiteCommand(query, myConnection);
             reader = command.ExecuteReader();
         }
